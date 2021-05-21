@@ -15,7 +15,7 @@ var config = {
   var canClick = true;
 
   function preload() {
-    this.load.spritesheet("coin", "assets/coin.png", {
+    this.load.spritesheet("coin", "https://game-awake.github.io/Toss-a-coin/assets/coin.png", {
       frameWidth: 64,
       frameHeight: 64
     });
