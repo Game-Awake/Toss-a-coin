@@ -11,6 +11,7 @@ var config = {
   
   var game = new Phaser.Game(config);
   var scene;
+  var currentFace = 0;
   var coin;
   var canClick = true;
 
@@ -23,13 +24,32 @@ var config = {
   
   function create() {
     scene = this;
-    coin = this.add.sprite(300,200,"coin",0);
+    coin = this.add.sprite(300,200,"coin",currentFace);
     this.input.on("pointerdown", toss, this);
   }
 
-  function selectFace() {
-    let newValue = Phaser.Math.Between(0, 1);
-    coin.setTexture('coin',newValue);
+  function getFace() {
+    return Phaser.Math.Between(0, 1);
+  }
+
+
+  function enableCanClick() {
+    canClick = true;
+  }
+
+  function changeSpriteFace() {
+    currentFace = 1 - currentFace;
+    coin.setTexture('coin',currentFace);
+  }
+
+  function createTween(y,scaleY,onComplete) {
+    return {
+      y: y,
+      scaleY: scaleY,
+      onComplete: onComplete,
+      targets: coin,
+      duration: 150,
+   };
   }
 
   function toss() {
@@ -37,23 +57,35 @@ var config = {
       return;
     }
     canClick = false;
-    this.tweens.add({
-      targets: coin,
-      y:150,
-      scaleY:0.1,
-      duration: 400,
-      onComplete: function(event, sprite){
-        selectFace();
-        scene.tweens.add({
-          targets: sprite,
-          y:200,
-          scaleY:1,
-          duration: 400,
-          onComplete: function(event, sprite){
-            canClick = true;
-          }
-        });
-      }
-    });
+    let timeLine = this.tweens.createTimeline();       
+
+    let newValue = getFace();
+
+    let posY = 200;
+    for(let i=1;i<=3;i++) {
+      posY -= 25;
+      timeLine.add(createTween(posY,0.1,changeSpriteFace));
+      posY -= 25;
+      timeLine.add(createTween(posY,1));
+    }
+    for(let i=1;i<=2;i++) {
+      posY += 25;
+      timeLine.add(createTween(posY,0.1,changeSpriteFace));
+      posY += 25;
+      timeLine.add(createTween(posY,1));
+    }
+    if(currentFace == newValue) {
+      posY += 25;
+      timeLine.add(createTween(posY,0.1,changeSpriteFace));
+      posY += 25;
+      timeLine.add(createTween(posY,1,enableCanClick));
+    } else {
+      posY += 25;
+      timeLine.add(createTween(posY,1));
+      posY += 25;
+      timeLine.add(createTween(posY,1,enableCanClick));
+    }
+
+   timeLine.play();
     
   }
